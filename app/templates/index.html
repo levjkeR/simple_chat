@@ -58,7 +58,7 @@
             <div class="col text-center">
                 <p class="fs-4">Transport: <span class="fw-bold fst-italic text-primary" id="transport"></span></p>
             </div>
-            <div class="col text-center">
+            <div class="col text-center border-end border-start">
                 <p class="fs-4">Ping: <span class="text-success fw-bold" id="ping"></span><span class=""><small>ms</small></span></p>
             </div>
             <div class="col text-center">
@@ -73,9 +73,9 @@
         $('#form_send_msg').on('submit', (e) => {
             e.preventDefault();
         });
-        const username = $('#user').text();
-        const socket = io('http://127.0.0.1:5000');
-        const elem = document.getElementById('chat-container');
+        let username = $('#user').text();
+        let socket = io('http://127.0.0.1:5000');
+        let elem = document.getElementById('chat-container');
         let ping_pong_times = [];
         let start_time;
         window.setInterval(function() {
@@ -95,8 +95,7 @@
         });
 
         $('#send_msg').on('click', () => {
-            let msg = $('#message_input').val();
-            if (msg.length > 0) {
+            if ($('#message_input').val().length > 0) {
                 socket.send({
                     'username': username,
                     'message': $('#message_input').val()

@@ -22,6 +22,7 @@ connections = Connections()
 
 @socketio.on("message")
 def handle_message(data):
+    print(data)
     send(data, broadcast=True)
     if data['message'] == "/count":
         msg = {'username': 'Bot',
