@@ -1,8 +1,6 @@
-from app import socketio
 from flask_socketio import send, emit
-from flask_login import current_user
 
-
+from app import socketio
 # Some problem with browser refresh. Mb ping?
 
 class Connections:
@@ -27,7 +25,7 @@ def handle_message(data):
     send(data, broadcast=True)
     if data['message'] == "/count":
         msg = {'username': 'Bot',
-                'message': f'Current connections: {connections.get()}'}
+               'message': f'Current connections: {connections.get()}'}
         handle_message(msg)
 
 

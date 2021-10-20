@@ -1,7 +1,8 @@
-from flask import Blueprint, request, redirect, flash, render_template, url_for
+from flask import Blueprint, request, redirect, url_for, flash
 from flask_login import login_user, login_required, logout_user
-import re
-from .model import User
+from re import match
+
+from .models import User
 
 auth = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -9,10 +10,10 @@ auth = Blueprint("auth", __name__, url_prefix="/auth")
 @auth.post("/login")
 def login():
     username, password = request.form.get("username"), request.form.get("password")
-    if not re.match(r"[A-Za-z0-9]{4,15}$", username):
+    if not match(r"[A-Za-z0-9]{4,15}$", username):
         flash("Your username must be 4-15 characters long, contain letters and numbers", category="log_error")
         return redirect(url_for("router.auth"))
-    if not re.match(r"[A-Za-z0-9]{4,20}$", password):
+    if not match(r"[A-Za-z0-9]{4,20}$", password):
         flash("Your password must be 4-20 characters long, contain letters and numbers", category="log_error")
         return redirect(url_for("router.auth"))
     user = User.query.filter_by(username=username).first()
@@ -30,10 +31,10 @@ def register():
     if user:
         flash("Username already exists", category="reg_error")
         return redirect(url_for("router.auth"))
-    if not re.match(r"[A-Za-z0-9]{4,15}$", username):
+    if not match(r"[A-Za-z0-9]{4,15}$", username):
         flash("Your username must be 4-15 characters long, contain letters and numbers", category="reg_error")
         return redirect(url_for("router.auth"))
-    if not re.match(r"[A-Za-z0-9]{4,20}$", password):
+    if not match(r"[A-Za-z0-9]{4,20}$", password):
         flash("Your password must be 4-20 characters long, contain letters and numbers", category="reg_error")
         return redirect(url_for("router.auth"))
     user = User(username=username, password=password)

@@ -15,7 +15,7 @@ class User(db.Model, UserMixin):
         self.set_password(kwargs.get("password"))
 
     def __repr__(self):
-        return "<{}:{}>".format(self.id, self.username)
+        return "{}:{}:{}".format(self.id, self.username, self.created_at)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -29,5 +29,5 @@ class User(db.Model, UserMixin):
 
 
 class Anonymous(AnonymousUserMixin):
-    def __init__(self):
-        self.username = "anonymous"
+    username = "anonymous"
+
