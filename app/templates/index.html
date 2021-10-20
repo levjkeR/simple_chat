@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div class="px-3 pt-4 mb-0 mt-4 text-center">
+    <h1 class="fw-bold">Simple Chat Application</h1>
+    <div class="col-lg-6 mx-auto">
+        <p class="fw-normal fs-6 mb-4">
+            Chat application using: Flask 2.0 with simple-websocket, flask-login in server side and SocketIO, jQuery, Bootstrap v5 in client side
+        </p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
+            <a type="button" href="/auth" class="btn btn-primary btn-lg px-4 me-sm-3">Authorization</a>
+            <a type="button" href="https://github.com/levjkeR" class="btn btn-outline-secondary btn-lg px-4">GitHub</a>
+        </div>
+    </div>
+    <div class="overflow-hidden" style="max-height: 202px;">
+        <div class="container px-5">
+            <img src="static/image/sitting.svg" class="img-fluid lg mb-4" alt="Example image" width="400" loading="lazy">
+        </div>
+    </div>
+</div>
+<div class="b-example-divider"></div>
+<div class="px-3 py-4 my-4">
+    <div class="chat col-lg-8 mx-auto border rounded">
+        <div class="header border-bottom" style="background: #f9f9f9">
+            <div class="row px-4 py-2">
+                <p class="col-6 fs-2  m-0 text-start fw-bold">General chat</p>
+                {% if current_user.is_authenticated %}
+                <div class="col-6 py-2 text-end">
+                    <a href="/auth/logout"><button class="btn btn-primary text-end" type="submit">Logout</button></a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="position-relative">
+            <div id="chat-container" class="border-bottom p-4" style="max-height: 440px;overflow-y: scroll;flex-direction: column; display: flex;">
+                <div class="chat-message-left pb-2" style="display: flex; max-width: 90%">
+                    <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
+                        <div class="fw-bold mb-1">Bot</div>
+                        This is simple general chat without chat history, but it's not forever.<br>
+                        Everyone can read messages, and only authorized users can write.
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% if current_user.is_authenticated %}
+        <form id="form_send_msg" autocomplete="off" novalidate class="input-group px-2 py-2">
+            <input type="text"  class="form-control" id="message_input" placeholder="Type your message">
+            <button type="submit" id="send_msg" class="btn btn-primary">Send</button>
+        </form>
+    {% endif %}
+    </div>
+</div>
+<div class="b-example-divider"></div>
+<div class="px-3 py-4 my-4">
+    <h1 class="fw-bold text-center">Information</h1>
+    <div class="col-lg-8 mx-auto">
+        <div class="row p-2 text-center">
+            <div class="col text-center">
+                <p class="fs-4">Transport: <span class="fw-bold fst-italic text-primary" id="transport"></span></p>
+            </div>
+            <div class="col text-center">
+                <p class="fs-4">Ping: <span class="text-success fw-bold" id="ping"></span><span class=""><small>ms</small></span></p>
+            </div>
+            <div class="col text-center">
+                <p class="fs-4">Current user: <span class="fw-bold text-primary" id="user">{{ current_user.username }}</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="b-example-divider"></div>
+<script type="text/javascript" charset="utf-8">
+    $(document).ready(() => {
+        $('#form_send_msg').on('submit', (e) => {
+            e.preventDefault();
+        });
+        const username = $('#user').text();
+        const socket = io('http://127.0.0.1:5000');
+        const elem = document.getElementById('chat-container');
+        let ping_pong_times = [];
+        let start_time;
+        window.setInterval(function() {
+                start_time = (new Date).getTime();
+                $('#transport').text(socket.io.engine.transport.name);
+                socket.emit("ping");
+        }, 1000);
+
+        socket.on('pong', function() {
+            let latency = (new Date).getTime() - start_time;
+            ping_pong_times.push(latency);
+            ping_pong_times = ping_pong_times.slice(-30); // keep last 30 samples
+            let sum = 0;
+            for (let i = 0; i < ping_pong_times.length; i++)
+                sum += ping_pong_times[i];
+            $('#ping').text(Math.round(10 * sum / ping_pong_times.length) / 10);
+        });
+
+        $('#send_msg').on('click', () => {
+            let msg = $('#message_input').val();
+            if (msg.length > 0) {
+                socket.send({
+                    'username': username,
+                    'message': $('#message_input').val()
+                });
+                $(`#message_input`).val('');
+            }
+        });
+
+        socket.on('message', data => {
+            if (data.message.length > 0) {
+                if (data.username === '{{ current_user.username }}') {
+                    $('#chat-container').append(`<div class="chat-message-right pb-2" style="display: flex; margin-left: auto;max-width: 90%"><div class="flex-shrink-1 bg-primary text-light rounded py-2 px-3 ml-3"><div class="fw-bold mb-1">${data.username}</div>${data.message}</div></div>`);
+                    elem.scrollTop = elem.scrollHeight;
+                } else {
+                    $('#chat-container').append(`<div class="chat-message-left pb-2" style="display: flex; max-width: 90%"><div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3"><div class="fw-bold mb-1">${data.username}</div>${data.message}</div></div>`);
+                    elem.scrollTop = elem.scrollHeight;
+                }
+                console.log('Received message');
+            }
+        });
+    });
+</script>
+{% endblock %}
